@@ -4,6 +4,8 @@ import ParticlesBackground from "@/components/ParticlesBackground";
 import Header from "@/components/Header";
 import ScrollSnapContainer, { ScrollSnapSection } from "@/components/ScrollSnapContainer";
 import WormholeTransition from "@/components/WormholeTransition";
+import FloatingMenu from "@/components/FloatingMenu";
+import { Toaster } from "@/components/ui/toaster";
 
 // Lazy load non-critical components
 const HeroSection = lazy(() => import("@/components/HeroSection"));
@@ -33,6 +35,7 @@ const Index = () => {
     'quantum-cards': false,
     contact: false
   });
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   // Track visible sections to optimize rendering
   const observeSections = () => {
@@ -70,10 +73,63 @@ const Index = () => {
     return () => clearTimeout(timeoutId);
   }, []);
 
+  // Handle swipe gestures for navigation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartX) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    
+    // If swipe right-to-left, go forward
+    if (diff > 100) {
+      // Find next section based on current visible section
+      const sections = ['hero', 'parallax', 'tech-constellation', 'timeline', 'quantum-cards', 'contact'];
+      const currentIndex = sections.findIndex(section => visibleSections[section]);
+      
+      if (currentIndex >= 0 && currentIndex < sections.length - 1) {
+        const nextSection = document.getElementById(sections[currentIndex + 1]);
+        if (nextSection) {
+          nextSection.scrollIntoView({ behavior: 'smooth' });
+          
+          // Haptic feedback
+          if ('vibrate' in navigator) {
+            navigator.vibrate(20);
+          }
+        }
+      }
+    }
+    // If swipe left-to-right, go back
+    else if (diff < -100) {
+      // Find previous section based on current visible section
+      const sections = ['hero', 'parallax', 'tech-constellation', 'timeline', 'quantum-cards', 'contact'];
+      const currentIndex = sections.findIndex(section => visibleSections[section]);
+      
+      if (currentIndex > 0) {
+        const prevSection = document.getElementById(sections[currentIndex - 1]);
+        if (prevSection) {
+          prevSection.scrollIntoView({ behavior: 'smooth' });
+          
+          // Haptic feedback
+          if ('vibrate' in navigator) {
+            navigator.vibrate(20);
+          }
+        }
+      }
+    }
+    
+    setTouchStartX(null);
+  };
+
   return (
     <div 
       className={`min-h-screen bg-nexus-space transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
       style={{ willChange: 'opacity' }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Particles Background */}
       <ParticlesBackground />
@@ -130,10 +186,16 @@ const Index = () => {
         </ScrollSnapSection>
       </ScrollSnapContainer>
       
+      {/* Floating Action Menu */}
+      <FloatingMenu position="bottom-right" />
+      
       {/* Footer */}
       <Suspense fallback={null}>
         <Footer />
       </Suspense>
+      
+      {/* Toaster for visual confirmations */}
+      <Toaster />
     </div>
   );
 };
