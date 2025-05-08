@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Nexus custom colors
+				nexus: {
+					'purple': '#2A0A4A',
+					'blue': '#0A74E6',
+					'cyan': '#00F5FF',
+					'magenta': '#FF00F5',
+					'space': '#050314'
 				}
+			},
+			fontFamily: {
+				'space-grotesk': ['"Space Grotesk"', 'sans-serif'],
+				'rajdhani': ['Rajdhani', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +97,42 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' },
+				},
+				'pulse-glow': {
+					'0%, 100%': { opacity: '1', transform: 'scale(1)' },
+					'50%': { opacity: '0.7', transform: 'scale(1.05)' },
+				},
+				'shimmer': {
+					'0%': { backgroundPosition: '-500px 0' },
+					'100%': { backgroundPosition: '500px 0' },
+				},
+				'star-glow': {
+					'0%, 100%': { opacity: '0.6', transform: 'scale(0.9)' },
+					'50%': { opacity: '1', transform: 'scale(1.1)' },
+				},
+				'particle-drift': {
+					'0%': { transform: 'translate(0, 0) rotate(0deg)' },
+					'33%': { transform: 'translate(10px, -10px) rotate(30deg)' },
+					'66%': { transform: 'translate(-5px, 15px) rotate(-20deg)' },
+					'100%': { transform: 'translate(0, 0) rotate(0deg)' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'float': 'float 5s ease-in-out infinite',
+				'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
+				'shimmer': 'shimmer 2s linear infinite',
+				'star-glow': 'star-glow 4s ease-in-out infinite',
+				'particle-drift': 'particle-drift 20s ease-in-out infinite'
+			},
+			backgroundImage: {
+				'cosmic-gradient': 'linear-gradient(135deg, #2A0A4A 0%, #0A74E6 100%)',
+				'neon-glow': 'linear-gradient(90deg, rgba(0, 245, 255, 0.3) 0%, rgba(255, 0, 245, 0.3) 100%)',
 			}
 		}
 	},
