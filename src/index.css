@@ -61,6 +61,22 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-rajdhani font-bold;
   }
+  
+  /* Improved scrolling behavior for all browsers */
+  html {
+    scroll-behavior: smooth;
+    height: 100%;
+    overflow: auto;
+  }
+  
+  /* Remove default focus outline and add custom one */
+  :focus {
+    outline: none;
+  }
+  
+  :focus-visible {
+    @apply ring-2 ring-nexus-cyan ring-opacity-60;
+  }
 }
 
 @layer utilities {
@@ -93,6 +109,42 @@
     box-shadow: 0 0 5px rgba(255, 0, 245, 0.7),
                 0 0 10px rgba(255, 0, 245, 0.5);
   }
+  
+  /* Smooth scrolling utilities */
+  .scroll-snap-container {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    height: 100vh;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Add support for wormhole animation effects */
+  @keyframes wormhole-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.8;
+    }
+  }
+  
+  .animate-wormhole-pulse {
+    animation: wormhole-pulse 3s infinite ease-in-out;
+  }
+  
+  /* Parallax utilities */
+  .parallax-container {
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .parallax-element {
+    will-change: transform;
+    transform-style: preserve-3d;
+  }
 }
 
 /* For the reduced motion preference */
@@ -103,4 +155,14 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  
+  .scroll-snap-container {
+    scroll-snap-type: none;
+  }
+}
+
+/* Add keyframes for scanline effect */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
 }

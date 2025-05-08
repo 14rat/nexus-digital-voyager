@@ -119,6 +119,19 @@ export default {
 					'33%': { transform: 'translate(10px, -10px) rotate(30deg)' },
 					'66%': { transform: 'translate(-5px, 15px) rotate(-20deg)' },
 					'100%': { transform: 'translate(0, 0) rotate(0deg)' },
+				},
+				'wormhole': {
+					'0%': { transform: 'scale(1) rotate(0deg)', opacity: '0.8' },
+					'50%': { transform: 'scale(0.5) rotate(180deg)', opacity: '0.2' },
+					'100%': { transform: 'scale(1) rotate(360deg)', opacity: '0.8' },
+				},
+				'scanline': {
+					'0%': { transform: 'translateY(-100%)' },
+					'100%': { transform: 'translateY(100%)' },
+				},
+				'levitate': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-20px)' },
 				}
 			},
 			animation: {
@@ -128,7 +141,10 @@ export default {
 				'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
 				'shimmer': 'shimmer 2s linear infinite',
 				'star-glow': 'star-glow 4s ease-in-out infinite',
-				'particle-drift': 'particle-drift 20s ease-in-out infinite'
+				'particle-drift': 'particle-drift 20s ease-in-out infinite',
+				'wormhole': 'wormhole 8s ease-in-out infinite',
+				'scanline': 'scanline 3s linear infinite',
+				'levitate': 'levitate 7s ease-in-out infinite',
 			},
 			backgroundImage: {
 				'cosmic-gradient': 'linear-gradient(135deg, #2A0A4A 0%, #0A74E6 100%)',

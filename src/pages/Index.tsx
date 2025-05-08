@@ -8,6 +8,9 @@ import NeonTimelineSection from "@/components/NeonTimelineSection";
 import QuantumCardsSection from "@/components/QuantumCardsSection";
 import ContactWormholeSection from "@/components/ContactWormholeSection";
 import Footer from "@/components/Footer";
+import ParallaxScrollSection from "@/components/ParallaxScrollSection";
+import ScrollSnapContainer, { ScrollSnapSection } from "@/components/ScrollSnapContainer";
+import WormholeTransition from "@/components/WormholeTransition";
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -27,22 +30,42 @@ const Index = () => {
       {/* Header */}
       <Header />
       
-      <main>
+      <ScrollSnapContainer>
         {/* Hero Section */}
-        <HeroSection />
+        <ScrollSnapSection id="hero">
+          <HeroSection />
+          <WormholeTransition targetId="parallax" label="Explorar o Cosmos" />
+        </ScrollSnapSection>
+        
+        {/* Parallax Scroll Section */}
+        <ScrollSnapSection id="parallax">
+          <ParallaxScrollSection />
+          <WormholeTransition targetId="tech-constellation" label="Ver Constelação Tech" />
+        </ScrollSnapSection>
         
         {/* Tech Constellation */}
-        <TechConstellationSection />
+        <ScrollSnapSection id="tech-constellation">
+          <TechConstellationSection />
+          <WormholeTransition targetId="timeline" label="Visualizar Timeline" />
+        </ScrollSnapSection>
         
         {/* Neon Timeline */}
-        <NeonTimelineSection />
+        <ScrollSnapSection id="timeline">
+          <NeonTimelineSection />
+          <WormholeTransition targetId="quantum-cards" label="Explorar Inovações" />
+        </ScrollSnapSection>
         
         {/* Quantum Cards */}
-        <QuantumCardsSection />
+        <ScrollSnapSection id="quantum-cards">
+          <QuantumCardsSection />
+          <WormholeTransition targetId="contact" label="Contato" />
+        </ScrollSnapSection>
         
         {/* Contact Wormhole */}
-        <ContactWormholeSection />
-      </main>
+        <ScrollSnapSection id="contact" className="pb-20">
+          <ContactWormholeSection />
+        </ScrollSnapSection>
+      </ScrollSnapContainer>
       
       {/* Footer */}
       <Footer />
