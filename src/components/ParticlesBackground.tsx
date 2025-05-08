@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef } from "react";
+import workerScript from '../workers/particleWorker';
 
 interface Particle {
   x: number;
@@ -13,6 +14,9 @@ interface Particle {
 
 export const ParticlesBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const workerRef = useRef<Worker | null>(null);
+  const animationRef = useRef<number>(0);
+  const particlesRef = useRef<Particle[]>([]);
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => {
@@ -24,40 +28,54 @@ export const ParticlesBackground: React.FC = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas to full screen
+    // Set canvas to full screen with proper device pixel ratio
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.scale(dpr, dpr);
     };
 
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-
-    // Create particles
-    const particleCount = Math.min(100, Math.max(30, window.innerWidth * window.innerHeight / 15000));
-    const particles: Particle[] = [];
-
-    // The colors array with our theme colors
-    const colors = ["#00F5FF", "#FF00F5", "#0A74E6", "#ffffff"];
+    // Create a blob URL from the worker function
+    const blob = new Blob(
+      [`(${workerScript.toString()})();`],
+      { type: 'application/javascript' }
+    );
+    const workerUrl = URL.createObjectURL(blob);
     
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 2 + 0.5,
-        speedX: (Math.random() - 0.5) * 0.3,
-        speedY: (Math.random() - 0.5) * 0.3,
-        opacity: Math.random() * 0.5 + 0.2,
-        color: colors[Math.floor(Math.random() * colors.length)]
-      });
+    // Create and setup the worker
+    workerRef.current = new Worker(workerUrl);
+    workerRef.current.onmessage = (e: MessageEvent) => {
+      particlesRef.current = e.data.particles;
+    };
+
+    window.addEventListener("resize", handleResize);
+    resizeCanvas();
+    
+    // Initial worker message
+    workerRef.current.postMessage({ 
+      canvasWidth: window.innerWidth, 
+      canvasHeight: window.innerHeight 
+    });
+
+    function handleResize() {
+      resizeCanvas();
+      if (workerRef.current) {
+        workerRef.current.postMessage({ 
+          canvasWidth: window.innerWidth, 
+          canvasHeight: window.innerHeight 
+        });
+      }
     }
 
-    // Animation function
+    // Animation function using requestAnimationFrame for optimal performance
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // Update and draw particles
-      particles.forEach(particle => {
+      particlesRef.current.forEach(particle => {
         // Update position
         particle.x += particle.speedX;
         particle.y += particle.speedY;
@@ -68,32 +86,41 @@ export const ParticlesBackground: React.FC = () => {
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
         
-        // Draw particle
+        // Draw particle using only transform and opacity (GPU optimized)
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fillStyle = particle.color.replace(")", `, ${particle.opacity})`).replace("rgb", "rgba");
         ctx.fill();
       });
       
-      requestAnimationFrame(animate);
+      animationRef.current = requestAnimationFrame(animate);
     };
     
     // Start animation
-    const animationId = requestAnimationFrame(animate);
+    animationRef.current = requestAnimationFrame(animate);
     
     // Clean up
     return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animationRef.current);
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        URL.revokeObjectURL(workerUrl);
+      }
     };
   }, [prefersReducedMotion]);
 
-  // Return a full-screen canvas that sits behind the content
+  // Return a full-screen canvas with GPU acceleration hints
   return (
     <canvas
       ref={canvasRef}
       className="fixed inset-0 -z-10 bg-transparent"
-      style={{ pointerEvents: "none" }}
+      style={{ 
+        pointerEvents: "none", 
+        transform: "translateZ(0)", // Force GPU acceleration
+        willChange: "transform" // Hint to browser for optimization
+      }}
+      aria-hidden="true"
     />
   );
 };

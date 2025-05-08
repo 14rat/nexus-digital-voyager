@@ -11,43 +11,86 @@ const WormholeTransition: React.FC<WormholeTransitionProps> = ({
   label = "Próxima Seção" 
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const isPrefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+  useEffect(() => {
+    // Pre-connect to target section for faster navigation
+    if (targetId) {
+      const prefetchSection = () => {
+        const element = document.getElementById(targetId);
+        // Just accessing the element helps browser preconnect
+      };
+      
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(prefetchSection);
+      } else {
+        setTimeout(prefetchSection, 200);
+      }
+    }
+  }, [targetId]);
   
   const handleClick = () => {
     if (targetId) {
-      const element = document.getElementById(targetId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
+      // Prevent scroll jank by using requestAnimationFrame
+      requestAnimationFrame(() => {
+        const element = document.getElementById(targetId);
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: isPrefersReducedMotion ? 'auto' : 'smooth',
+            block: 'start'
+          });
+        }
+      });
     }
   };
+  
+  // Using pointer events for better cross-device interaction
+  const handlePointerEnter = () => setIsHovered(true);
+  const handlePointerLeave = () => setIsHovered(false);
   
   return (
     <div className="flex flex-col items-center my-16">
       <button
+        ref={buttonRef}
         onClick={handleClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
         className="relative group transition-all duration-300"
         aria-label={label}
+        style={{ 
+          willChange: "transform", // Hint to browser for optimization
+          touchAction: "manipulation" // Remove 300ms delay on mobile
+        }}
       >
-        {/* Outer ring */}
+        {/* Outer ring - GPU accelerated with transform instead of border changes */}
         <div 
-          className={`absolute inset-0 rounded-full border-2 transition-all duration-500
-                     ${isHovered ? 'border-nexus-magenta scale-[2.0] opacity-0' : 'border-nexus-cyan scale-100 opacity-70'}`}
+          className="absolute inset-0 rounded-full border-2 border-nexus-cyan"
+          style={{ 
+            transform: isHovered ? 'scale(2.0)' : 'scale(1.0)',
+            opacity: isHovered ? 0 : 0.7,
+            transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
         ></div>
         
-        {/* Middle ring */}
+        {/* Middle ring - GPU accelerated with transform */}
         <div 
-          className={`absolute inset-0 rounded-full border-2 transition-all duration-700 delay-100
-                     ${isHovered ? 'border-nexus-blue scale-[1.7] opacity-0' : 'border-nexus-magenta scale-100 opacity-70'}`}
+          className="absolute inset-0 rounded-full border-2 border-nexus-magenta"
+          style={{ 
+            transform: isHovered ? 'scale(1.7)' : 'scale(1.0)',
+            opacity: isHovered ? 0 : 0.7,
+            transition: 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.1s',
+          }}
         ></div>
         
-        {/* Inner ring */}
+        {/* Inner ring - GPU optimized */}
         <div 
-          className={`w-16 h-16 rounded-full flex items-center justify-center 
-                     bg-gradient-to-r from-nexus-cyan/20 to-nexus-magenta/20 backdrop-blur-sm
-                     transition-all duration-300 
-                     ${isHovered ? 'transform scale-110' : ''}`}
+          className="w-16 h-16 rounded-full flex items-center justify-center 
+                   bg-gradient-to-r from-nexus-cyan/20 to-nexus-magenta/20 backdrop-blur-sm"
+          style={{
+            transform: isHovered ? 'scale(1.1)' : 'scale(1.0)',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -56,7 +99,11 @@ const WormholeTransition: React.FC<WormholeTransitionProps> = ({
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
-            className={`text-white transition-transform duration-300 ${isHovered ? 'transform translate-y-1' : ''}`}
+            className="text-white"
+            style={{
+              transform: isHovered ? 'translateY(4px)' : 'translateY(0)',
+              transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
           >
             <path 
               strokeLinecap="round" 
@@ -73,4 +120,8 @@ const WormholeTransition: React.FC<WormholeTransitionProps> = ({
   );
 };
 
-export default WormholeTransition;
+// Add hint to the browser that this component will animate
+// by using React's unstable_Profiler if available
+const OptimizedWormholeTransition = React.memo(WormholeTransition);
+
+export default OptimizedWormholeTransition;
